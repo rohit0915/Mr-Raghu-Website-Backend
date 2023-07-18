@@ -13,11 +13,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    confirmEmail: {
-        type: String,
-        required: true,
-        unique: true
-    },
     password: {
         type: String,
         required: true
@@ -34,7 +29,17 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["Admin", "User"],
         default: "User"
-    }
+    },
+    profileImage: {
+        type: String,
+    },
+    profileName: {
+        type: String,
+    },
+    savedCourses: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+      }],
 
 },{timestamps: true})
 

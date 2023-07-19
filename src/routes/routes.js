@@ -3,16 +3,17 @@ const router = express.Router();
 const authenticateUser = require("../middleware/auth")
 const userController = require("../controller/usercontroller");
 const courseController = require('../controller/courseController');
+const userValidator = require('../validation/commonValidation')
 
 //
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-cloudinary.config({ 
-    cloud_name: 'dcagmx6hq', 
-    api_key: '152478213721556', 
-    api_secret: 'CgSCm_qpPVYO-E3RduGFTPmSw7Y' 
-  });
+cloudinary.config({
+    cloud_name: 'dcagmx6hq',
+    api_key: '152478213721556',
+    api_secret: 'CgSCm_qpPVYO-E3RduGFTPmSw7Y'
+});
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
@@ -25,8 +26,10 @@ const upload = multer({ storage: storage });
 
 // user
 router.post('/signup', userController.signup);
-router.post('/login',userController.login)
-router.put('/update-user/:userId',authenticateUser.authenticateUser, upload.single('profileImage'), userController.updateProfile)
+router.post('/verify-otp', userController.verifyOTP);
+router.post('/resend-otp', userController.resendOTP);
+router.post('/login', userController.login)
+router.put('/update-user/:userId', authenticateUser.authenticateUser, upload.single('profileImage'), userController.updateProfile)
 
 
 // course

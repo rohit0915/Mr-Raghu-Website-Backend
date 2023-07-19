@@ -1,29 +1,28 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true
-    },
-    lastName: {
-        type: String,
-    },
+
     email: {
         type: String,
-        required: true,
+        // required: true,
         unique: true,
     },
     password: {
         type: String,
-        required: true
+        // required: true
     },
-    residence: {
+    mobileNumber: {
         type: String,
-        required: true
+        // required: true,
+        unique: true,
     },
-    profession: {
+    otp: {
         type: String,
-        required: true
+        // required: true,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     },
     userType: {
         type: String,
@@ -32,16 +31,30 @@ const userSchema = new mongoose.Schema({
     },
     profileImage: {
         type: String,
+        // required: true
     },
-    profileName: {
+    firstName: {
         type: String,
+        // required: true
+    },
+    lastName: {
+        type: String,
+        // required: true
+    },
+    schoolName: {
+        type: String,
+        // required: true
+    },
+    qualification: {
+        type: String,
+        // required: true
     },
     savedCourses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
-      }],
+    }],
 
-},{timestamps: true})
+}, { timestamps: true })
 
 const user = mongoose.model('User', userSchema);
 

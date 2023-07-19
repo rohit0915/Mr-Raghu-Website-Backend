@@ -1,7 +1,7 @@
 const courseDb = require('../model/courseModel');
 const userDb = require('../model/userModel');
 
-const { nameRegex, passwordRegex, emailRegex, isvalidBody, isValid, isValidField } = require('../validation/userValidation')
+const { nameRegex, passwordRegex, emailRegex, objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
 
 
 const createCourse = async (req, res) => {
@@ -9,7 +9,7 @@ const createCourse = async (req, res) => {
         const data = req.body
         const { title, description, instructor, duration, price, lessons, weeks } = data;
 
-        if (!isvalidBody(data)) return res.status(400).json({ status: 400, message: "Body can't be empty please enter some data" })
+        if (!isValidBody(data)) return res.status(400).json({ status: 400, message: "Body can't be empty please enter some data" })
         if (!isValid(title)) return res.status(400).json({ status: 400, message: "Title is required" })
         if (!isValid(description)) return res.status(400).json({ status: 400, message: "Description is required" })
         if (!isValid(instructor)) return res.status(400).json({ status: 400, message: "Instructor is required" })

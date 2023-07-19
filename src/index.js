@@ -7,7 +7,8 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const DB_URI = "mongodb+srv://princegap001:ggnDV9CL3lLGSwaW@cluster0.mtewcid.mongodb.net/raghu?retryWrites=true&w=majority";
+const DB_URI = "mongodb+srv://prince:uJeFGC3CsNXtwErb@cluster0.kh2zxr5.mongodb.net/raghu";
+
 
 mongoose.set('strictQuery', true)
 

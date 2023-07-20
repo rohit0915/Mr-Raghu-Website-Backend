@@ -43,6 +43,10 @@ const getMyCourses = async (req, res) => {
     try {
         const userId = req.user.userId;
         console.log("userId", userId);
+        const checkUser = await userDb.findById(userId)
+        if(!checkUser){
+            return res.status(404).json({ status: 404, message: "User not found" })
+        }
         const courses = await courseDb.find({ enrolledStudents: userId });
         console.log("courses", courses);
         res.status(200).json({ status: 200, message: "Data get successfully", data: courses });
@@ -63,6 +67,36 @@ const getOngoingCourses = async (req, res) => {
     }
 }
 
+const saveCourse = async (req, res) => {
+    try {
+      const userId = req.user.userId;
+      const courseId = req.body.courseId;
+  
+      const user = await userDb.findById(userId);
+      if (!user) {
+        return res.status(404).json({ status: 404, message: "User not found" });
+      }
+      const course = await courseDb.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ status: 404, message: "Course not found" });
+      }
+      if (user.savedCourses.includes(courseId)) {
+        return res.status(400).json({ status: 400, message: "Course is already saved" });
+      }
+      user.savedCourses.push(courseId);
+      await user.save();
+  
+      course.savedStatus = true;
+      await course.save();
+  
+      res.status(200).json({ status: 200, message: "Course saved successfully", data: course });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'An error occurred while saving the course' });
+    }
+  };
+  
+  
 
 const getSavedCourses = async (req, res) => {
     try {
@@ -114,10 +148,74 @@ const enrollInCourse = async (req, res) => {
 
 
 
+const addToCart = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { courseId } = req.body;
+
+    const user = await userDb.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: 404, message: "User not found" });
+    }
+    const course = await courseDb.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ status: 404, message: "Course not found" });
+    }
+    if (user.cart.includes(courseId)) {
+      return res.status(400).json({ status: 400, message: "Course is already in the cart" });
+    }
+    user.cart.push(courseId);
+    await user.save();
+
+    res.status(200).json({ status: 200, message: "Course added to cart successfully", data: user.cart });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while adding the course to the cart' });
+  }
+};
+
+
+const deleteCourseFromCart = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const courseId = req.params.courseId;
+
+    const user = await userDb.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: 404, message: "User not found" });
+    }
+
+    const course = await courseDb.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ status: 404, message: "Course not found" });
+    }
+
+    if (!user.savedCourses.includes(courseId)) {
+      return res.status(400).json({ status: 400, message: "Course is not in the cart" });
+    }
+
+    user.savedCourses = user.savedCourses.filter((course) => course.toString() !== courseId);
+    user.cart = user.cart.filter((course) => course.toString() !== courseId);
+    await user.save();
+
+    res.status(200).json({ status: 200, message: "Course removed from the cart successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while removing the course from the cart' });
+  }
+};
+
+
+
+
+
+
+
 module.exports = {
     createCourse,
     getMyCourses,
     getOngoingCourses,
+    saveCourse,
     getSavedCourses,
-    enrollInCourse,
+    enrollInCourse
 };

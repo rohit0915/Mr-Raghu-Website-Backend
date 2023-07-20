@@ -2,6 +2,7 @@
 const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
 const nameRegex = /^[A-Za-z]+(?:\s[A-Za-z]+)*$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const mobileRegex = /^[1-9]\d{9}$/
 
 const objectId = (value, helpers) => {
     if (!value.match(/^[0-9a-fA-F]{24}$/)) {
@@ -26,4 +27,4 @@ const isValidField = (value) => {
     return true
 }
 
-module.exports = {nameRegex, emailRegex, passwordRegex, objectId, isValidBody, isValid, isValidField}
+module.exports = {nameRegex, emailRegex, passwordRegex, mobileRegex, objectId, isValidBody, isValid, isValidField}

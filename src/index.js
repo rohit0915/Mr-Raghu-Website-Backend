@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const routes = require('../src/routes/routes');
+const routes = require('./routes/routes');
 const bodyParser = require('body-parser');
 
 
@@ -11,6 +11,13 @@ const DB_URI = "mongodb+srv://prince:uJeFGC3CsNXtwErb@cluster0.kh2zxr5.mongodb.n
 
 
 mongoose.set('strictQuery', true)
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Hello !! TESTING DB Updated",
+    url: `${req.protocol}://${req.get("host")}`,
+  });
+});
 
 mongoose.connect(DB_URI, {
     useNewUrlParser: true,

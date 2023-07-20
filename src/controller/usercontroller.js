@@ -5,9 +5,12 @@ const cloudinary = require('../middleware/cloudinaryConfig');
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 
-const { nameRegex, passwordRegex, emailRegex, objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
+const { nameRegex, passwordRegex, emailRegex, mobileRegex,  objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
 
-const twilioClient = twilio('AC925de06ab8b9f37be27dd007becc2b19', '9a385cb95e8da90639430b25b5abddb9');
+const accountSid = 'AC925de06ab8b9f37be27dd007becc2b19';
+const authToken = 'a5540c992cea4645a7592e9882241c53';
+const twilioClient = twilio(accountSid, authToken);
+// const twilioClient = twilio('AC925de06ab8b9f37be27dd007becc2b19', '9a385cb95e8da90639430b25b5abddb9');
 
 
 const signup = async (req, res) => {
@@ -22,6 +25,12 @@ const signup = async (req, res) => {
     }
     if (!emailRegex.test(email)) {
       return res.status(406).json({ status: 406, message: "Email Id is not valid" });
+    }
+    if (!isValid(mobileNumber)) {
+      return res.status(406).json({ status: 406, message: "Mobile Number is required" });
+    }
+    if (!mobileRegex.test(mobileNumber)) {
+      return res.status(406).json({ status: 406, message: "Mobile Number is not valid" });
     }
     if (!isValid(password)) {
       return res.status(406).json({ status: 406, message: "Password is required" });
@@ -50,17 +59,17 @@ const signup = async (req, res) => {
 
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, 'Prince-123');
+    // const token = jwt.sign({ userId: user._id }, 'Prince-123');
 
     twilioClient.messages
       .create({
         body: `Your OTP for signup is: ${otp}`,
         from: '+15739833421',
-        to: mobileNumber,
+        to: "+91" + mobileNumber,
       })
       .then((message) => {
         console.log(`SMS sent with SID: ${message.sid}`);
-        res.status(201).json({ status: 201, message: "Signup successful", user, token });
+        res.status(201).json({ status: 201, message: "Signup successful", user, /*token*/ });
       })
       .catch((error) => {
         console.error('Error sending SMS:', error);
@@ -86,9 +95,9 @@ const verifyOTP = async (req, res) => {
     }
     user.isVerified = true;
     await user.save();
-    const token = jwt.sign({ userId: user._id }, 'Prince-123');
+    //const token = jwt.sign({ userId: user._id }, 'Prince-123');
 
-    res.status(200).json({ status: 200, message: "OTP verified successfully", token });
+    res.status(200).json({ status: 200, message: "OTP verified successfully", /*token*/ });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to verify OTP' });
@@ -116,7 +125,7 @@ const resendOTP = async (req, res) => {
       .create({
         body: `Your new OTP for signup is: ${otp}`,
         from: '+15739833421',
-        to: user.mobileNumber,
+        to: "+91" + user.mobileNumber,
       })
       .then((message) => {
         console.log(`SMS sent with SID: ${message.sid}`);
@@ -135,14 +144,12 @@ const resendOTP = async (req, res) => {
 const login = async (req, res) => {
   try {
     const data = req.body
-    const { email, password, otp } = data;
+    const { email, password } = data;
     if (!isValidBody(data)) return res.status(400).json({ status: 400, message: "Body can't be empty please enter some data" })
     if (!isValid(email)) return res.status(400).json({ status: 400, message: "Email is required" })
     if (!emailRegex.test(email)) return res.status(406).json({ status: 406, message: "Email Id is not valid" })
     if (!isValid(password)) return res.status(406).json({ status: 406, message: "password is required" })
     if (!passwordRegex.test(password)) return res.status(406).json({ status: 406, message: "Password is not valid" })
-    if (!isValid(otp)) return res.status(406).json({ status: 406, message: "otp is required" })
-
     const user = await userDb.findOne({ email });
     if (!user) {
       return res.status(401).json({ status: 401, message: "Invalid email" });
@@ -169,6 +176,9 @@ const updateProfile = async (req, res) => {
 
     if (req.file) {
       profileImage = req.file ? req.file.path : "";
+    }
+    if(!firstName || !lastName || !schoolName || !qualification){
+      return res.status(400).json({ status: 400, message: "firstName, lastName, schoolName, qualification  is required" });
     }
     if (!isValidField(firstName)) {
       return res.status(400).json({ status: 400, message: "First name is required" });

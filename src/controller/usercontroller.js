@@ -8,7 +8,7 @@ const twilio = require('twilio');
 const { nameRegex, passwordRegex, emailRegex, mobileRegex,  objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
 
 const accountSid = 'AC925de06ab8b9f37be27dd007becc2b19';
-const authToken = 'a5540c992cea4645a7592e9882241c53';
+const authToken = 'a8e7e7b0bf94cfc078425277d85c063d';
 const twilioClient = twilio(accountSid, authToken);
 // const twilioClient = twilio('AC925de06ab8b9f37be27dd007becc2b19', '9a385cb95e8da90639430b25b5abddb9');
 
@@ -154,11 +154,13 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({ status: 401, message: "Invalid email" });
     }
+    user.isVerified = true;
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ status: 401, message: "Invalid password" });
     }
     const token = jwt.sign({ userId: user._id }, 'Prince-123');
+    await user.save();
 
     return res.status(200).json({ status: 200, message: "Login successful", data: { user, token } });
   } catch (error) {

@@ -30,17 +30,6 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    status: {
-        type: String,
-        enum: ['ongoing', 'completed'],
-        default: 'ongoing',
-    },
-    enrolledUsers: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-        },
-    ],
     courseImage: {
         type: String,
     },

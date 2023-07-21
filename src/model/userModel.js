@@ -49,6 +49,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         // required: true
     },
+    enrolledCourses: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Progress',
+        },
+    ],
     savedCourses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',

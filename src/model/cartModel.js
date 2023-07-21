@@ -1,3 +1,4 @@
+const { boolean } = require('joi');
 const mongoose = require('mongoose');
 
 const cartSchema = new mongoose.Schema({
@@ -16,6 +17,10 @@ const cartSchema = new mongoose.Schema({
   totalAmount: {
     type: Number,
     default: 0,
+  },
+  paymentStatus: {
+    type: Boolean,
+    defalut: false
   },
   purchaseDate: {
     type: Date,

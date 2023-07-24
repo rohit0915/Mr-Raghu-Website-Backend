@@ -4,16 +4,17 @@ const userDb = require('../model/userModel');
 const courseDb = require('../model/courseModel');
 const cartDb = require('../model/cartModel');
 
+
+
 const getProgress = async (req, res) => {
     try {
-        const userId = req.user.userId;
-        const courseId = req.params.courseId;
+        const userId = req.params.userId;
+        const courseId = req.body.courseId;
         const user = await userDb.findById(userId);
         if (!user) {
             return res.status(404).json({ status: 404, message: "User not found" });
         }
         const progress = await ProgressDB.findOne({ userId, courseId });
-
         if (!progress) {
             return res.status(404).json({ status: 404, message: "Progress not found" });
         }
@@ -28,7 +29,7 @@ const getProgress = async (req, res) => {
 
 const updateProgress = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.params.userId;
         const courseId = req.params.courseId;
         const { completedLessons } = req.body;
 
@@ -47,7 +48,6 @@ const updateProgress = async (req, res) => {
         if (progress.completedLessons === 100) {
             progress.courseStatus = 'completed';
             await progress.save();
-            await course.save();
         }
 
         res.status(200).json({ status: 200, message: "Progress updated successfully", data: progress });

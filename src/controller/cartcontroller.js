@@ -6,25 +6,21 @@ const cartDb = require('../model/cartModel');
 
 const addToCart = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params.userId;
     const { courseId } = req.body;
 
     const user = await userDb.findById(userId);
     if (!user) {
       return res.status(404).json({ status: 404, message: "User not found" });
     }
-
     const course = await courseDb.findById(courseId);
     if (!course) {
       return res.status(404).json({ status: 404, message: "Course not found" });
     }
-
     if (user.cart.includes(courseId)) {
       return res.status(400).json({ status: 400, message: "Course is already in the cart" });
     }
-
     const cart = await cartDb.findOne({ userId });
-
     if (!cart) {
       const newCart = new cartDb({ userId, courses: [courseId], totalAmount: course.price });
       await newCart.save();
@@ -33,6 +29,7 @@ const addToCart = async (req, res) => {
       cart.courses.push(courseId);
       cart.totalAmount += course.price;
       await cart.save();
+
       return res.status(200).json({ status: 200, message: "Course added to cart successfully", data: cart });
     }
   } catch (error) {
@@ -44,9 +41,9 @@ const addToCart = async (req, res) => {
 
 const deleteCourseFromCart = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params.userId;
     const courseId = req.body.courseId;
-    const cartId = req.params.cartId;
+    const cartId = req.body.cartId;
 
     const user = await userDb.findById(userId);
     if (!user) {
@@ -81,7 +78,7 @@ const deleteCourseFromCart = async (req, res) => {
 
 const getCart = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params.userId;
     console.log("userId", userId);
     const checkUser = await userDb.findById(userId)
     if (!checkUser) {
@@ -105,7 +102,7 @@ const getCart = async (req, res) => {
 
 const buyItemsInCart = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params.userId;
     const user = await userDb.findById(userId);
     if (!user) {
       return res.status(404).json({ status: 404, message: "User not found" });

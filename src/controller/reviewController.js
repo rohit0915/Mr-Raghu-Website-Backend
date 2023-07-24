@@ -8,15 +8,15 @@ const cartDb = require('../model/cartModel');
 const postReview = async (req, res) => {
   try {
     const { courseId, rating, comment } = req.body;
-    const userId = req.user.userId;
+    const userId = req.params.userId;
     const user = await userDb.findById(userId);
     if (!user) {
       return res.status(404).json({ status: 404, message: "User not found" });
     }
-    const checkCourseUser = await courseDb.findOne({enrolledUsers: userId})
-    console.log("checkCourseUser",checkCourseUser);
-    if(!checkCourseUser){
-        return res.status(404).json({ status: 404, message: "you not give post this Course first buy then give review" });
+    const checkCourseUser = await courseDb.findOne({ enrolledUsers: userId })
+    console.log("checkCourseUser", checkCourseUser);
+    if (!checkCourseUser) {
+      return res.status(404).json({ status: 404, message: "you not give post this Course first buy then give review" });
     }
     const existingReview = await reviewDb.findOne({ courseId, userId });
     if (existingReview) {
@@ -45,7 +45,7 @@ const getCourseReviews = async (req, res) => {
   try {
     const courseId = req.params.courseId;
 
-    const reviews = await reviewDb.find({ courseId }).populate('userId', );
+    const reviews = await reviewDb.find({ courseId }).populate('userId',);
 
     if (reviews.length === 0) {
       return res.status(404).json({ status: 404, message: "No reviews found for this course" });

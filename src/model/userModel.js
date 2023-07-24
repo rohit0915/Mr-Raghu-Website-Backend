@@ -62,7 +62,7 @@ const userSchema = new mongoose.Schema({
     cart: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
-      }],
+    }],
 
 }, { timestamps: true })
 

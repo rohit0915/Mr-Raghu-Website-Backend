@@ -11,7 +11,8 @@ const courseSchema = new mongoose.Schema({
         required: true,
     },
     instructor: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Instructor',
         required: true,
     },
     price: {
@@ -33,10 +34,16 @@ const courseSchema = new mongoose.Schema({
     courseImage: {
         type: String,
     },
-    savedStatus: {
-        type: Boolean,
-        default: false
-    },
+    category: {
+        type: String,
+        required: true,
+      },
+    courseVideo: [{
+        type: String,
+    }],
+    courseNotes: [{
+        type: String,
+    }],
 
 }, { timestamps: true });
 

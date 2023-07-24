@@ -5,11 +5,11 @@ const user = require('../model/userModel');
 
 const postHelpRequest = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params.userId;
     console.log("userId", userId);
     const checkUser = await userDb.findById(userId)
-    if(!checkUser){
-        return res.status(404).json({ status: 404, message: "User not found" })
+    if (!checkUser) {
+      return res.status(404).json({ status: 404, message: "User not found" })
     }
     const { subject, message } = req.body;
 
@@ -36,14 +36,14 @@ const postHelpRequest = async (req, res) => {
 
 const getAllHelpRequests = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params.userId;
     console.log("userId", userId);
     const checkUser = await userDb.findById(userId)
-    if(!checkUser){
-        return res.status(404).json({ status: 404, message: "User not found" })
+    if (!checkUser) {
+      return res.status(404).json({ status: 404, message: "User not found" })
     }
-    const helpRequests = await helpDb.find({user: userId}).populate('user', 'firstName lastName email mobileNumber');
-    if(helpRequests.length === 0){
+    const helpRequests = await helpDb.find({ user: userId }).populate('user', 'firstName lastName email mobileNumber');
+    if (helpRequests.length === 0) {
       return res.status(404).json({ status: 404, message: "No data found" })
     }
     res.status(200).json({ status: 200, message: "All help requests retrieved successfully", data: helpRequests });

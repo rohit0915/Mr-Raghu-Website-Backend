@@ -5,12 +5,11 @@ const cloudinary = require('../middleware/cloudinaryConfig');
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 
-const { nameRegex, passwordRegex, emailRegex, mobileRegex,  objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
+const { nameRegex, passwordRegex, emailRegex, mobileRegex, objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
 
 const accountSid = 'AC925de06ab8b9f37be27dd007becc2b19';
 const authToken = 'a8e7e7b0bf94cfc078425277d85c063d';
 const twilioClient = twilio(accountSid, authToken);
-// const twilioClient = twilio('AC925de06ab8b9f37be27dd007becc2b19', '9a385cb95e8da90639430b25b5abddb9');
 
 
 const signup = async (req, res) => {
@@ -179,7 +178,7 @@ const updateProfile = async (req, res) => {
     if (req.file) {
       profileImage = req.file ? req.file.path : "";
     }
-    if(!firstName || !lastName || !schoolName || !qualification){
+    if (!firstName || !lastName || !schoolName || !qualification) {
       return res.status(400).json({ status: 400, message: "firstName, lastName, schoolName, qualification  is required" });
     }
     if (!isValidField(firstName)) {
@@ -217,6 +216,24 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const getUserProfile = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const userProfile = await userDb.findById(userId);
+    if (!userProfile) {
+      return res.status(404).json({ status: 404, message: "User profile not found" });
+    }
+
+    res.status(200).json({ status: 200, message: "User profile retrieved successfully", data: userProfile });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while fetching the user profile' });
+  }
+};
 
 
-module.exports = { signup, verifyOTP, resendOTP, login, updateProfile };
+
+
+
+module.exports = { signup, verifyOTP, resendOTP, login, updateProfile, getUserProfile };

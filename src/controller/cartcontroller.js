@@ -1,3 +1,4 @@
+require('dotenv').config()
 const userDb = require('../model/userModel');
 const courseDb = require('../model/courseModel');
 const cartDb = require('../model/cartModel');

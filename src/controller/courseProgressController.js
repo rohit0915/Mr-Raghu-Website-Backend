@@ -1,3 +1,4 @@
+require('dotenv').config()
 const ProgressDB = require('../model/courseProgessModel');
 const reviewDb = require('../model/reviewModel');
 const userDb = require('../model/userModel');
@@ -39,6 +40,10 @@ const updateProgress = async (req, res) => {
         }
         if (completedLessons < 0 || completedLessons > 100) {
             return res.status(400).json({ status: 400, message: "Completed lessons value must be between 0 and 100" });
+        }
+        const course = await courseDb.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ status: 404, message: 'Course not found' });
         }
         let progress = await ProgressDB.findOneAndUpdate(
             { userId, courseId },

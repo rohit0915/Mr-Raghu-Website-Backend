@@ -1,3 +1,4 @@
+require('dotenv').config()
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const InstructorDb = require('../model/instructorModel');
@@ -91,7 +92,7 @@ const loginInstructor = async (req, res) => {
         if (!passwordMatch) {
             return res.status(401).json({ status: 401, message: 'Invalid credentials' });
         }
-        const token = jwt.sign({ id: instructor._id }, 'prince-12345', { expiresIn: '1h' });
+        const token = jwt.sign({ id: instructor._id }, process.env.ADMIN_SECRET_KEY, { expiresIn: '1h' });
 
         res.status(200).json({ status: 200, message: 'Instructor logged in successfully', instructor, token });
     } catch (error) {

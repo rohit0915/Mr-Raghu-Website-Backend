@@ -1,3 +1,4 @@
+require('dotenv').config()
 const userDb = require('../model/userModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -7,8 +8,8 @@ const twilio = require('twilio');
 
 const { nameRegex, passwordRegex, emailRegex, mobileRegex, objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
 
-const accountSid = 'AC925de06ab8b9f37be27dd007becc2b19';
-const authToken = 'a8e7e7b0bf94cfc078425277d85c063d';
+const accountSid = process.env.ACCOUNT_SID;
+const authToken = process.env.AUTH_TOKEN;
 const twilioClient = twilio(accountSid, authToken);
 
 
@@ -58,7 +59,7 @@ const signup = async (req, res) => {
 
     await user.save();
 
-    // const token = jwt.sign({ userId: user._id }, 'Prince-123');
+    // const token = jwt.sign({ userId: user._id }, 'process.env.USER_SECRET_KEY');
 
     twilioClient.messages
       .create({
@@ -94,7 +95,7 @@ const verifyOTP = async (req, res) => {
     }
     user.isVerified = true;
     await user.save();
-    //const token = jwt.sign({ userId: user._id }, 'Prince-123');
+    //const token = jwt.sign({ userId: user._id }, process.env.USER_SECRET_KEY);
 
     res.status(200).json({ status: 200, message: "OTP verified successfully", /*token*/ });
   } catch (error) {
@@ -158,7 +159,7 @@ const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ status: 401, message: "Invalid password" });
     }
-    const token = jwt.sign({ userId: user._id }, 'Prince-123');
+    const token = jwt.sign({ userId: user._id }, process.env.USER_SECRET_KEY);
     await user.save();
 
     return res.status(200).json({ status: 200, message: "Login successful", data: { user, token } });

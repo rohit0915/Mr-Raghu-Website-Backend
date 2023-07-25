@@ -1,8 +1,14 @@
+require('dotenv').config()
 const courseDb = require('../model/courseModel');
 const userDb = require('../model/userModel');
 const ProgressDB = require('../model/courseProgessModel');
 const InstructorDb = require('../model/instructorModel');
+const reviewDb = require('../model/reviewModel');
 const mongoose = require('mongoose');
+const request = require('request');
+const http = require('http');
+const https = require('https');
+
 
 const { nameRegex, passwordRegex, emailRegex, objectId, isValidBody, isValid, isValidField } = require('../validation/commonValidation')
 
@@ -13,9 +19,9 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
-  cloud_name: 'dcagmx6hq',
-  api_key: '152478213721556',
-  api_secret: 'CgSCm_qpPVYO-E3RduGFTPmSw7Y'
+  cloud_name: process.env.cloud_name,
+    api_key: process.env.api_key,
+    api_secret: process.env.api_secret
 });
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
@@ -283,7 +289,6 @@ const getPopularCourses = async (req, res) => {
 };
 
 
-
 const getCoursesByCategory = async (req, res) => {
   try {
     const category = req.params.category;
@@ -367,14 +372,13 @@ const updateCourseNotes = async (req, res) => {
 };
 
 
-
 const getInstructorCourses = async (req, res) => {
   try {
     const instructorId = req.params.instructorId;
     console.log("instructorId", instructorId);
-    
+
     const courses = await courseDb.find({ instructor: instructorId });
-    console.log("courses", courses);
+    // console.log("courses", courses);
     if (courses.length === 0) {
       return res.status(404).json({ status: 404, message: "No courses found for this instructor" });
     }
@@ -384,6 +388,115 @@ const getInstructorCourses = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching the courses' });
   }
 };
+
+
+
+const getInstructorCourseStatistics = async (req, res) => {
+  try {
+    const instructorId = req.params.instructorId;
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+
+    const existingInstructor = await InstructorDb.findById(instructorId);
+    if (!existingInstructor) {
+      return res.status(404).json({ status: 404, message: "Instructor not found" });
+    }
+    const courses = await courseDb.find({ instructor: instructorId });
+    let filteredCourses = courses;
+    if (startDate && endDate) {
+      filteredCourses = filteredCourses.filter(
+        course => new Date(course.createdAt) >= new Date(startDate) && new Date(course.createdAt) <= new Date(endDate)
+      );
+    }
+    const totalCourses = filteredCourses.length;
+
+    res.status(200).json({
+      status: 200,
+      message: "Course statistics retrieved successfully",
+      data: {
+        totalCourses,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while fetching the course statistics' });
+  }
+};
+
+
+
+const getInstructorReviews = async (req, res) => {
+  try {
+    const instructorId = req.params.instructorId;
+    console.log("instructorId", instructorId);
+
+    const courses = await courseDb.find({ instructor: instructorId });
+    console.log("courses", courses);
+    if (courses.length === 0) {
+      return res.status(404).json({ status: 404, message: "No courses found for this instructor" });
+    }
+    const courseIds = courses.map(course => course._id);
+    console.log("courseIds", courseIds);
+
+    const reviews = await reviewDb.find({ courseId: { $in: courseIds } });
+    console.log("reviews", reviews);
+
+    if (reviews.length === 0) {
+      return res.status(404).json({ status: 404, message: "Review not found for this Courses" });
+    }
+
+    res.status(200).json({
+      status: 200,
+      message: "Reviews retrieved successfully",
+      data: reviews,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while fetching the reviews' });
+  }
+};
+
+
+
+const streamVideo = async (req, res) => {
+  try {
+    const courseId = req.params.courseId;
+
+    const course = await courseDb.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ status: 404, message: 'Course not found' });
+    }
+    const courseVideos = course.courseVideo;
+    if (!courseVideos || courseVideos.length === 0) {
+      return res.status(404).json({ status: 404, message: 'No videos found for this course' });
+    }
+    res.setHeader('Content-Type', 'video/mp4');
+    const streamVideoSequentially = (index) => {
+      if (index >= courseVideos.length) {
+        return res.end();
+      }
+      const videoUrl = courseVideos[index];
+      console.log("videoUrl", videoUrl);
+      const requestModule = videoUrl.startsWith('https://') ? https : http;
+      requestModule.get(videoUrl, (videoRes) => {
+        videoRes.pipe(res, { end: false });
+        videoRes.on('end', () => {
+          streamVideoSequentially(index + 1);
+        });
+      }).on('error', (err) => {
+        console.error('Error streaming video:', err);
+        streamVideoSequentially(index + 1);
+      });
+    };
+
+    streamVideoSequentially(0);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while streaming the video' });
+  }
+};
+
+
 
 
 
@@ -404,5 +517,8 @@ module.exports = {
   getCoursesByCategory,
   updateCourseVideos,
   updateCourseNotes,
-  getInstructorCourses
+  getInstructorCourses,
+  getInstructorCourseStatistics,
+  getInstructorReviews,
+  streamVideo
 };

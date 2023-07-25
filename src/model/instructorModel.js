@@ -26,7 +26,14 @@ const instructorSchema = new mongoose.Schema({
     createCourses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
-    }]
+    }],
+    // startDate: {
+    //     type: Date,
+    // },
+    // endDate: {
+    //     type: Date,
+    // },
+
 }, { timestamps: true });
 
 const Instructor = mongoose.model('Instructor', instructorSchema);

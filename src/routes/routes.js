@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const router = express.Router();
 
@@ -6,7 +7,7 @@ const { signup, verifyOTP, resendOTP, login, updateProfile, getUserProfile } = r
 const {
     createCourse, getMyCourses, getOngoingCourses,
     saveCourse, getSavedCourses, enrollCourse, getCourseDetails, getFeaturedCourses, getPopularCourses, getCoursesByCategory,
-    updateCourseVideos, updateCourseNotes, getInstructorCourses
+    updateCourseVideos, updateCourseNotes, getInstructorCourses, getInstructorCourseStatistics, getInstructorReviews, streamVideo
 } = require('../controller/courseController');
 const {
     postHelpRequest, getAllHelpRequests,
@@ -21,6 +22,9 @@ const {
     getProgress, updateProgress,
 } = require('../controller/courseProgressController')
 const { registerInstructor, loginInstructor } = require('../controller/instructorController');
+const { createNotification, getNotification, deleteNotification } = require('../controller/notificationController');
+const { registerAdmin, loginAdmin, getAllUsers, getSpecificUser, getUserCourses, adminCanGetOngoingCourses } = require('../controller/adminController');
+
 
 
 
@@ -29,9 +33,9 @@ const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
-    cloud_name: 'dcagmx6hq',
-    api_key: '152478213721556',
-    api_secret: 'CgSCm_qpPVYO-E3RduGFTPmSw7Y'
+    cloud_name: process.env.cloud_name,
+    api_key: process.env.api_key,
+    api_secret: process.env.api_secret
 });
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -68,6 +72,10 @@ router.get('/courses/category/:category', getCoursesByCategory);
 router.put('/courses/:courseId/videos', updateCourseVideos);
 router.put('/courses/:courseId/notes', updateCourseNotes);
 router.get('/instructor/courses/:instructorId', getInstructorCourses);
+router.get('/instructors/:instructorId/courses/statistics', getInstructorCourseStatistics);
+router.get('/instructors/:instructorId/reviews', getInstructorReviews);
+router.get('/courses/:courseId/stream', streamVideo);
+
 
 
 
@@ -101,6 +109,29 @@ router.post('/progress/:userId/:courseId', authenticateUser, authorization, upda
 //instructor 
 router.post('/Instructor-register', registerInstructor);
 router.post('/Instructor-login', loginInstructor);
+
+
+
+// Notification
+router.post('/notifications', createNotification)
+router.get('/notifications/:userId', getNotification)
+router.delete('/notifications/:userId', deleteNotification)
+
+
+
+// Admin
+router.post('/admin-register', registerAdmin);
+router.post('/admin-login', loginAdmin);
+router.get('/users', authenticateAdmin, getAllUsers);
+router.get('/users/:userId', authenticateAdmin, getSpecificUser);
+router.get('/users/:userId/courses', authenticateAdmin, getUserCourses);
+router.get('/admin-ongoing-courses/:userId', authenticateAdmin, adminCanGetOngoingCourses);
+
+
+
+
+
+
 
 
 

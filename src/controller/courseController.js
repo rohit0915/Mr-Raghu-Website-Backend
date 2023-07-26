@@ -20,8 +20,8 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
   cloud_name: process.env.cloud_name,
-    api_key: process.env.api_key,
-    api_secret: process.env.api_secret
+  api_key: process.env.api_key,
+  api_secret: process.env.api_secret
 });
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
@@ -44,6 +44,7 @@ const storage1 = new CloudinaryStorage({
 });
 const upload1 = multer({ storage: storage1 }).array('courseNotes');
 // upload Notes End
+
 
 
 
@@ -273,10 +274,42 @@ const getFeaturedCourses = async (req, res) => {
 };
 
 
+// const getPopularCourses = async (req, res) => {
+//   try {
+//     const popularCourses = await courseDb.find().sort({ 'enrolledUsers.length': -1 }).limit(10);
+
+//     if (popularCourses.length === 0) {
+//       return res.status(404).json({ status: 404, message: "No popular courses found" });
+//     }
+
+//     res.status(200).json({ status: 200, message: "Popular courses retrieved successfully", data: popularCourses });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'An error occurred while fetching the popular courses' });
+//   }
+// };
+
+
 const getPopularCourses = async (req, res) => {
   try {
-    const popularCourses = await courseDb.find().sort({ 'enrolledUsers.length': -1 }).limit(10);
-
+    const users = await userDb.find();
+    // console.log("users", users)
+    const allEnrolledCourses = users.flatMap((user) => user.enrolledCourses);
+    // console.log("allEnrolledCourses", allEnrolledCourses)
+    const enrolledCoursesCount = {};
+    // console.log("enrolledCoursesCount", enrolledCoursesCount)
+    const progressDocs = await ProgressDB.find({ _id: { $in: allEnrolledCourses } });
+    // console.log("progressDocs", progressDocs)
+    for (const progressDoc of progressDocs) {
+      const courseId = progressDoc.courseId.toString();
+      enrolledCoursesCount[courseId] = (enrolledCoursesCount[courseId] || 0) + 1;
+    }
+    const sortedEnrolledCourses = Object.entries(enrolledCoursesCount).sort((a, b) => b[1] - a[1]);
+    // console.log("sortedEnrolledCourses", sortedEnrolledCourses)
+    const popularCoursesIds = sortedEnrolledCourses.slice(0, 10).map((entry) => entry[0]);
+    // console.log("popularCoursesIds", popularCoursesIds)
+    const popularCourses = await courseDb.find({ _id: { $in: popularCoursesIds } });
+    // console.log("popularCourses", popularCourses)
     if (popularCourses.length === 0) {
       return res.status(404).json({ status: 404, message: "No popular courses found" });
     }
@@ -287,6 +320,7 @@ const getPopularCourses = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching the popular courses' });
   }
 };
+
 
 
 const getCoursesByCategory = async (req, res) => {

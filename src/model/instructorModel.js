@@ -27,6 +27,10 @@ const instructorSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
     }],
+    blockedStatus: {
+        type: Boolean,
+        default: false,
+    },
     // startDate: {
     //     type: Date,
     // },

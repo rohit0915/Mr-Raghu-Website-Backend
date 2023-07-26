@@ -37,13 +37,18 @@ const courseSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-      },
+    },
     courseVideo: [{
         type: String,
     }],
     courseNotes: [{
         type: String,
     }],
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
 
 }, { timestamps: true });
 

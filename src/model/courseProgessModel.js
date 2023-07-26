@@ -25,7 +25,7 @@ const progressSchema = new mongoose.Schema({
   },
 
 
-},{timestamps: true });
+}, { timestamps: true });
 
 const Progress = mongoose.model('Progress', progressSchema);
 

@@ -7,6 +7,8 @@ const userDb = require('../model/userModel');
 const ProgressDB = require('../model/courseProgessModel');
 const InstructorDb = require('../model/instructorModel');
 const reviewDb = require('../model/reviewModel');
+const CouponDb = require('../model/couponModel');
+
 
 
 
@@ -203,6 +205,291 @@ const adminCanGetOngoingCourses = async (req, res) => {
 
 
 
+const blockUser = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const user = await userDb.findById(userId);
+        if (!user) {
+            return res.status(404).json({ status: 404, message: 'User not found' });
+        }
+        if (user.blockedStatus === true) {
+            return res.status(400).json({ status: 400, message: 'User already blocked' });
+        }
+        user.blockedStatus = true;
+        await user.save();
+
+        res.status(200).json({ status: 200, message: 'User blocked successfully', data: user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while blocking the user' });
+    }
+};
 
 
-module.exports = { registerAdmin, loginAdmin, getAllUsers, getSpecificUser, getUserCourses, adminCanGetOngoingCourses };
+
+
+const getAllInstructors = async (req, res) => {
+    try {
+        const instructors = await InstructorDb.find();
+        if (!instructors) {
+            return res.status(404).json({ status: 404, message: 'Instructor not found' });
+        }
+        res.status(200).json({ status: 200, message: 'Instructors retrieved successfully', data: instructors });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching instructors' });
+    }
+};
+
+
+
+
+const adminCanGetInstructorCourses = async (req, res) => {
+    try {
+        const instructorId = req.params.instructorId;
+
+        const instructor = await InstructorDb.findById(instructorId);
+        if (!instructor) {
+            return res.status(404).json({ status: 404, message: 'Instructor not found' });
+        }
+        const courses = await courseDb.find({ instructor: instructorId });
+        if (courses.length === 0) {
+            return res.status(404).json({ status: 404, message: 'No courses found for this instructor' });
+        }
+
+        res.status(200).json({ status: 200, message: 'Instructor courses retrieved successfully', data: courses });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching instructor courses' });
+    }
+};
+
+
+
+const AdminCanGetCourseStatistics = async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+
+        const course = await courseDb.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ status: 404, message: 'Course not found' });
+        }
+        const totalEnrolledUsers = course.enrolledUsers ? course.enrolledUsers.length : 0;
+        const statistics = {
+            totalEnrolledUsers: totalEnrolledUsers,
+            averageRating: course.averageRating,
+        };
+
+        res.status(200).json({ status: 200, message: 'Course statistics retrieved successfully', data: statistics });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching course statistics' });
+    }
+};
+
+
+
+
+
+const AdminCanBlockInstructor = async (req, res) => {
+    try {
+        const instructorId = req.params.instructorId;
+
+        const instructor = await InstructorDb.findById(instructorId);
+        if (!instructor) {
+            return res.status(404).json({ status: 404, message: 'Instructor not found' });
+        }
+        if (instructor.blockedStatus === true) {
+            return res.status(400).json({ status: 400, message: 'Instructor already blocked' });
+        }
+        instructor.blockedStatus = true;
+        await instructor.save();
+
+        res.status(200).json({ status: 200, message: 'Instructor blocked successfully', data: instructor });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while blocking the instructor' });
+    }
+};
+
+
+
+
+
+const AdminCanGenerateCoupon = async (req, res) => {
+    try {
+        const { code, discountPercentage, validFrom, validTo } = req.body;
+
+        if (!code || !discountPercentage || !validFrom || !validTo) {
+            return res.status(400).json({ status: 400, message: 'All fields are required' });
+        }
+        const existingCoupon = await CouponDb.findOne({ code });
+        if (existingCoupon) {
+            return res.status(400).json({ status: 400, message: 'This code is already present in the database' });
+        }
+
+        const coupon = new CouponDb({
+            code,
+            discountPercentage,
+            validFrom,
+            validTo,
+        });
+
+        const savedCoupon = await coupon.save();
+
+        res.status(201).json({ status: 201, message: 'Coupon generated successfully', data: savedCoupon });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while generating the coupon' });
+    }
+};
+
+
+
+
+const AdminCanDeleteCoupon = async (req, res) => {
+    try {
+        const couponId = req.params.couponId;
+
+        const coupon = await CouponDb.findOneAndDelete({ _id: couponId });
+        if (!coupon) {
+            return res.status(404).json({ status: 404, message: 'Coupon not found' });
+        }
+
+        res.status(200).json({ status: 200, message: 'Coupon deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while deleting the coupon' });
+    }
+};
+
+
+
+
+
+const AdminCanModifyCoupon = async (req, res) => {
+    try {
+        const couponId = req.params.couponId;
+        const { code, discountPercentage, validFrom, validTo } = req.body;
+
+        const existingCoupon = await CouponDb.findById(couponId);
+        if (!existingCoupon) {
+            return res.status(404).json({ status: 404, message: 'Coupon not found' });
+        }
+        if (code && code !== existingCoupon.code) {
+            const checkCode = await CouponDb.findOne({ code });
+            if (checkCode) {
+                return res.status(400).json({ status: 400, message: 'This code is already present in the database' });
+            }
+            existingCoupon.code = code;
+        }
+        if (discountPercentage) {
+            existingCoupon.discountPercentage = discountPercentage;
+        }
+        if (validFrom) {
+            existingCoupon.validFrom = validFrom;
+        }
+        if (validTo) {
+            existingCoupon.validTo = validTo;
+        }
+        const updatedCoupon = await existingCoupon.save();
+
+        res.status(200).json({ status: 200, message: 'Coupon updated successfully', data: updatedCoupon });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while updating the coupon' });
+    }
+};
+
+
+
+
+
+const getCourseApprovalApplications = async (req, res) => {
+    try {
+        const pendingCourses = await courseDb.find({ approvalStatus: 'pending' });
+        if (pendingCourses.length === 0) {
+            return res.status(404).json({ status: 404, message: 'Courses for approval not found' });
+        }
+
+        res.status(200).json({ status: 200, message: 'Course approval applications retrieved successfully', data: pendingCourses });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching course approval applications' });
+    }
+};
+
+
+
+
+const approveCourse = async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+
+        const course = await courseDb.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ status: 404, message: 'Course not found' });
+        }
+        if (course.approvalStatus === 'approved') {
+            return res.status(400).json({ status: 400, message: 'Course already Approved' });
+        }
+        course.approvalStatus = 'approved';
+        await course.save();
+
+        res.status(200).json({ status: 200, message: 'Course approved successfully', data: course });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while approving the course' });
+    }
+};
+
+
+
+
+const rejectCourse = async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+
+        const course = await courseDb.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ status: 404, message: 'Course not found' });
+        }
+        if (course.approvalStatus === 'rejected') {
+            return res.status(400).json({ status: 400, message: 'Course already Rejected' });
+        }
+        course.approvalStatus = 'rejected';
+        await course.save();
+
+        res.status(200).json({ status: 200, message: 'Course rejected successfully', data: course });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while rejecting the course' });
+    }
+};
+
+
+
+
+
+
+
+module.exports = {
+    registerAdmin,
+    loginAdmin,
+    getAllUsers,
+    getSpecificUser,
+    getUserCourses,
+    adminCanGetOngoingCourses,
+    blockUser,
+    getAllInstructors,
+    adminCanGetInstructorCourses,
+    AdminCanGetCourseStatistics,
+    AdminCanBlockInstructor,
+    AdminCanGenerateCoupon,
+    AdminCanDeleteCoupon,
+    AdminCanModifyCoupon,
+    getCourseApprovalApplications,
+    approveCourse,
+    rejectCourse
+};

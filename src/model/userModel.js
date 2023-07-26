@@ -63,6 +63,17 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
     }],
+    blockedStatus: {
+        type: Boolean,
+        default: false,
+    },
+    resetToken: {
+        type: String,
+    },
+    resetTokenExpiration: {
+        type: Date,
+    },
+
 
 }, { timestamps: true })
 

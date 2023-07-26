@@ -88,6 +88,9 @@ const loginInstructor = async (req, res) => {
         if (!instructor) {
             return res.status(404).json({ status: 404, message: 'Instructor not found' });
         }
+        if (instructor.blockedStatus===true) {
+            return res.status(401).json({ status: 401, message: "Your account has been blocked. Please contact the admin for assistance." });
+          }
         const passwordMatch = await bcrypt.compare(password, instructor.password);
         if (!passwordMatch) {
             return res.status(401).json({ status: 401, message: 'Invalid credentials' });
@@ -103,4 +106,7 @@ const loginInstructor = async (req, res) => {
 
 
 
-module.exports = { registerInstructor, loginInstructor };
+module.exports = {
+    registerInstructor,
+    loginInstructor
+};

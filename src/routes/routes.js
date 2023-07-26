@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const { authenticateUser, authorizeUser, authorization, authenticateAdmin } = require("../middleware/auth");
-const { signup, verifyOTP, resendOTP, login, updateProfile, getUserProfile } = require("../controller/usercontroller");
+const { signup, verifyOTP, resendOTP, forgotPassword, resetPassword, login, updateProfile, getUserProfile } = require("../controller/usercontroller");
 const {
     createCourse, getMyCourses, getOngoingCourses,
     saveCourse, getSavedCourses, enrollCourse, getCourseDetails, getFeaturedCourses, getPopularCourses, getCoursesByCategory,
@@ -23,7 +23,9 @@ const {
 } = require('../controller/courseProgressController')
 const { registerInstructor, loginInstructor } = require('../controller/instructorController');
 const { createNotification, getNotification, deleteNotification } = require('../controller/notificationController');
-const { registerAdmin, loginAdmin, getAllUsers, getSpecificUser, getUserCourses, adminCanGetOngoingCourses } = require('../controller/adminController');
+const {
+    registerAdmin, loginAdmin, getAllUsers, getSpecificUser, getUserCourses, adminCanGetOngoingCourses, blockUser, getAllInstructors, adminCanGetInstructorCourses, AdminCanGetCourseStatistics, AdminCanBlockInstructor, AdminCanGenerateCoupon, AdminCanDeleteCoupon, AdminCanModifyCoupon, getCourseApprovalApplications, approveCourse, rejectCourse
+} = require('../controller/adminController');
 
 
 
@@ -53,6 +55,8 @@ const upload = multer({ storage: storage });
 router.post('/signup', signup);
 router.post('/verify-otp', verifyOTP);
 router.post('/resend-otp', resendOTP);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.post('/login', login)
 router.put('/update-user/:userId', authenticateUser, authorization, upload.single('profileImage'), updateProfile)
 router.get('/profile/:userId', authenticateUser, authorization, getUserProfile);
@@ -126,6 +130,23 @@ router.get('/users', authenticateAdmin, getAllUsers);
 router.get('/users/:userId', authenticateAdmin, getSpecificUser);
 router.get('/users/:userId/courses', authenticateAdmin, getUserCourses);
 router.get('/admin-ongoing-courses/:userId', authenticateAdmin, adminCanGetOngoingCourses);
+router.put('/admin/block-user/:userId', authenticateAdmin, blockUser);
+router.get('/admin/instructors', authenticateAdmin, getAllInstructors);
+router.get('/admin/instructors/:instructorId/courses', authenticateAdmin, adminCanGetInstructorCourses);
+router.get('/admin/courses/:courseId/statistics', authenticateAdmin, AdminCanGetCourseStatistics);
+router.put('/instructors/:instructorId/block', authenticateAdmin, AdminCanBlockInstructor);
+router.post('/coupons', authenticateAdmin, AdminCanGenerateCoupon);
+router.delete('/coupon/:couponId', authenticateAdmin, AdminCanDeleteCoupon);
+router.put('/coupon/:couponId', authenticateAdmin, AdminCanModifyCoupon);
+router.get('/applications', authenticateAdmin, getCourseApprovalApplications);
+router.put('/courses/:courseId/approve', authenticateAdmin, approveCourse);
+router.put('/courses/:courseId/reject', authenticateAdmin, rejectCourse);
+
+
+
+
+
+
 
 
 

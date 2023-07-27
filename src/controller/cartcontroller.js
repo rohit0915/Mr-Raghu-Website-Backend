@@ -2,6 +2,8 @@ require('dotenv').config()
 const userDb = require('../model/userModel');
 const courseDb = require('../model/courseModel');
 const cartDb = require('../model/cartModel');
+const uuid = require('uuid');
+
 
 
 
@@ -101,6 +103,7 @@ const getCart = async (req, res) => {
 };
 
 
+
 const buyItemsInCart = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -112,22 +115,38 @@ const buyItemsInCart = async (req, res) => {
     if (!cart) {
       return res.status(404).json({ status: 404, message: "Cart not found" });
     }
+    if (cart.courses.length === 0) {
+      return res.status(404).json({ status: 404, message: "Cart is empty you can't buy" });
+    }
 
     const totalAmount = cart.courses.reduce((acc, course) => acc + course.price, 0);
 
-    //logic for payment
+    // Logic for payment
 
+    const newOrder = new cartDb({
+      userId,
+      courses: cart.courses ? cart.courses : [],
+      totalAmount,
+      paymentStatus: true,
+    });
+    console.log("newOrder", newOrder)
+    await newOrder.save();
     cart.courses = [];
-    cart.totalAmount = 0
-    cart.paymentStatus = true
+    cart.totalAmount = 0;
+    cart.paymentStatus = true;
     await cart.save();
+    console.log("newOrder", newOrder)
+    console.log("cart", cart)
 
-    res.status(200).json({ status: 200, message: "Items in the cart have been purchased successfully", totalAmount });
+    res.status(200).json({ status: 200, message: "Items in the cart have been purchased successfully", totalAmount, orderId: newOrder.orderId });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'An error occurred while processing the purchase' });
   }
 };
+
+
+
 
 
 

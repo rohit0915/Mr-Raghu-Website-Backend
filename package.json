@@ -25,6 +25,7 @@
     "request": "^2.88.2",
     "twilio": "^4.14.0",
     "uuid": "^9.0.0",
-    "validator": "^13.9.0"
+    "validator": "^13.9.0",
+    "vercel": "^31.1.1"
   }
 }

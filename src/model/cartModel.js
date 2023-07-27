@@ -1,5 +1,7 @@
 const { boolean } = require('joi');
 const mongoose = require('mongoose');
+const uuid = require('uuid');
+
 
 const cartSchema = new mongoose.Schema({
 
@@ -21,6 +23,11 @@ const cartSchema = new mongoose.Schema({
   paymentStatus: {
     type: Boolean,
     defalut: false
+  },
+  orderId: {
+    type: String,
+    unique: true,
+    default: () => uuid.v4(),
   },
   purchaseDate: {
     type: Date,
